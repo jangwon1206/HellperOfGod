@@ -2,17 +2,45 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Functions
 {
-    private Vector3 MoveVec = Vector3.zero;
-    public Camera _Camera = null;
-    private Vector3 ForwardVec = Vector3.zero;
+    
+    private Vector3 ForwardVec = Vector3.zero;  //forward가 될 Vector
 
-    private bool UpButton = false;
-    private bool DownButton = false;
-    private bool LeftButton = false;
-    private bool RightButton = false;
-   
+    public Camera _Camera = null;
+
+    private Animator Ani;
+
+
+    //입력에 따른 Forward에 쓰일 인수
+    private float UpButtonVec_X = 0f;
+    private float UpButtonVec_Z = 0f;
+    private float DownButtonVec_X = 0f;
+    private float DownButtonVec_Z = 0f;
+    private float RightButtonVec_X = 0f;
+    private float RightButtonVec_Z = 0f;
+    private float LeftButtonVec_X = 0f;
+    private float LeftButtonVec_Z = 0f;
+
+    //입력을 확인하는 값
+    private int UpButton = 0;
+    private int DownButton = 0;
+    private int LeftButton = 0;
+    private int RightButton = 0;
+
+    //버튼의 입력 총값
+    private int PushCount = 0;
+
+    //Forward 결과 인수
+    private float ForwardVec_X = 0;
+    private float ForwardVec_Z = 0;
+
+    //상수들
+    private const int ButtonDown = 1;   //버튼 PreesDown
+    private const int ButtonUp = 0;     //버튼 PreesUp
+    private const float MoveSpeed = 3f; //Player MoveSpeed
+
+
     public enum State
     {
         IDLE,
@@ -22,92 +50,103 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        Ani = this.GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()
     {
-
-
-        if(Input.GetKey(KeyCode.W))
+        
+        if (Input.GetKey(KeyCode.W))
         {
-            ForwardVec = new Vector3(_Camera.transform.forward.x, 0f, _Camera.transform.forward.z).normalized;
-            this.transform.forward = Vector3.Lerp(this.transform.forward, ForwardVec, 0.06f);
+            UpButton = ButtonDown;
+            UpButtonVec_X = _Camera.transform.forward.x;
+            UpButtonVec_Z = _Camera.transform.forward.z;
+        }
+        else if(Input.GetKeyUp(KeyCode.W))
+        {
+            UpButton = ButtonUp;
+            UpButtonVec_X = 0f;
+            UpButtonVec_Z = 0f;
+        }
 
-            MoveVec = this.transform.forward;
 
-            this.transform.Translate(MoveVec* 0.01f, Space.World);
-        } 
         if(Input.GetKey(KeyCode.S))
         {
-            ForwardVec = new Vector3(_Camera.transform.forward.x, 0f, _Camera.transform.forward.z).normalized;
-            this.transform.forward = Vector3.Lerp(this.transform.forward, -ForwardVec, 0.06f);
-
-            MoveVec = this.transform.forward;
-            
-            this.transform.Translate(MoveVec*0.01f, Space.World);    
+            DownButton = ButtonDown;
+            DownButtonVec_X = -_Camera.transform.forward.x;
+            DownButtonVec_Z = -_Camera.transform.forward.z;
         }
+        else if (Input.GetKeyUp(KeyCode.S))
+        {
+            DownButton = ButtonUp;
+            DownButtonVec_X = 0f;
+            DownButtonVec_Z = 0f;
+        }
+
+
         if (Input.GetKey(KeyCode.A))
         {
-            ForwardVec = new Vector3(_Camera.transform.right.x, 0f, _Camera.transform.right.z).normalized;
-            this.transform.forward = Vector3.Lerp(this.transform.forward, -ForwardVec, 0.06f);
-
-            MoveVec = this.transform.forward;
-
-            this.transform.Translate(MoveVec * 0.01f, Space.World);
+            LeftButton = ButtonDown;
+            LeftButtonVec_X = -_Camera.transform.right.x;
+            LeftButtonVec_Z = -_Camera.transform.right.z;
         }
+        else if (Input.GetKeyUp(KeyCode.A))
+        {
+            LeftButton = ButtonUp;
+            LeftButtonVec_X = 0f;
+            LeftButtonVec_Z = 0f;
+        }
+
+
         if (Input.GetKey(KeyCode.D))
         {
-            ForwardVec = new Vector3(_Camera.transform.right.x, 0f, _Camera.transform.right.z).normalized;
-            this.transform.forward = Vector3.Lerp(this.transform.forward, ForwardVec, 0.06f);
-
-            MoveVec = this.transform.forward;
-
-            this.transform.Translate(MoveVec * 0.01f, Space.World);
+            RightButton = ButtonDown;
+            RightButtonVec_X = _Camera.transform.right.x;
+            RightButtonVec_Z = _Camera.transform.right.z;
         }
-       
+        else if(Input.GetKeyUp(KeyCode.D))
+        {
+            RightButton = ButtonUp;
+            RightButtonVec_X = 0f;
+            RightButtonVec_Z = 0f;
+        }
+
+        //총 Prees된 개수
+        PushCount = UpButton + DownButton + LeftButton + RightButton;
+
+        //입력이 됐다면
+        if (PushCount > 0)
+        {
+            //버튼이 눌린 값을 모두 더해 Vector의 평균값을 구함
+            ForwardVec_X = (UpButtonVec_X + DownButtonVec_X + LeftButtonVec_X + RightButtonVec_X) / PushCount;
+            ForwardVec_Z = (UpButtonVec_Z + DownButtonVec_Z + LeftButtonVec_Z + RightButtonVec_Z) / PushCount;
+
+            //forward가 될 Vector값
+            ForwardVec = new Vector3(ForwardVec_X, 0f, ForwardVec_Z);
+
+            //천천히 Forward값을 변경
+            this.transform.forward = Vector3.Lerp(this.transform.forward, ForwardVec, 0.2f);
+
+            //실제 움직임값
+            this.transform.Translate(this.transform.forward * 0.01f * MoveSpeed, Space.World);
+        }
+        else
+        {
+            ForwardVec_X = 0f;
+            ForwardVec_Z = 0f;    
+        }
+
+        if (ForwardVec_X != 0f || ForwardVec_Z != 0f)
+        {
+            Ani_Play(Ani, "Walk", true);
+        }
+        else
+        {
+            Ani_Play(Ani, "Walk", false);
+        }
+
     }
 
-    private void FixedUpdate()
-    {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            UpButton = true;
-        }
-        if (Input.GetKeyUp(KeyCode.W))
-        {
-            UpButton = false;
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            DownButton = true;
-        } 
-        if (Input.GetKeyUp(KeyCode.S))
-        {
-            DownButton = false;
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            RightButton = true;
-        }
-        if (Input.GetKeyUp(KeyCode.A))
-        {
-            RightButton = false;
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            LeftButton = true;
-        }
-        if (Input.GetKeyUp(KeyCode.D))
-        {
-            LeftButton = false;
-        }
-    }
+    
 }

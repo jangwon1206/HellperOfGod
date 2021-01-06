@@ -26,8 +26,8 @@ public class CameraController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        CameraMaxDistance = 18f;
-        CameraDistance = -CameraMaxDistance;
+        CameraMaxDistance = -18f;
+        CameraDistance = CameraMaxDistance;
         
     }
 
@@ -36,10 +36,10 @@ public class CameraController : MonoBehaviour
     {
         this.transform.position = _CameraPos.transform.position;
         //작업용 카메라위치 RAY
-        Debug.DrawRay(this.transform.position, -this.transform.forward * CameraMaxDistance, Color.red, 0.3f);
+        Debug.DrawRay(this.transform.position, this.transform.forward * CameraMaxDistance, Color.red, 0.3f);
 
         //캐릭터 비추는 카메라의 위치를 조정
-        if (Physics.Raycast(this.transform.position, -this.transform.forward, out CameraPosRay, CameraMaxDistance))
+        if (Physics.Raycast(this.transform.position, -this.transform.forward, out CameraPosRay, -CameraMaxDistance))
         {
             //Map오브젝트가 캐릭터를 가릴 경우
             if(CameraPosRay.collider.CompareTag("Map"))
@@ -49,15 +49,16 @@ public class CameraController : MonoBehaviour
             //가리지 않을 경우
             else
             {
-                CameraDistance = -CameraMaxDistance;  //카메라 최대거리
+                CameraDistance = CameraMaxDistance;  //카메라 최대거리
             }
 
         }
         //Ray가 닿지 않을 경우 ( 최대거리 )
         else
         {
-            CameraDistance = -CameraMaxDistance;
+            CameraDistance = CameraMaxDistance;
         }
+        
 
         //카메라의 위치
         _Camera.transform.localPosition= new Vector3(0f, 0f, CameraDistance);
@@ -75,13 +76,13 @@ public class CameraController : MonoBehaviour
             Camera_ControlRotation_X = (Camera_StartMouseControlPos_X - Input.mousePosition.x) * 0.01f;
             Camera_ControlRotation_Y = (Camera_StartMouseControlPos_Y - Input.mousePosition.y) * 0.01f;
 
-            if (Camera_ControlRotation_X >= 3f)
+            if (Camera_ControlRotation_X >= 2f)
             {
-                Camera_ControlRotation_X = 3f;
+                Camera_ControlRotation_X = 2f;
             }
-            if (Camera_ControlRotation_Y >= 3f)
+            if (Camera_ControlRotation_Y >= 2f)
             {
-                Camera_ControlRotation_Y = 3f;
+                Camera_ControlRotation_Y = 2f;
             }
 
             Camera_ResultRotation_X = this.transform.eulerAngles.x + Camera_ControlRotation_Y;
@@ -91,6 +92,25 @@ public class CameraController : MonoBehaviour
 
             this.transform.rotation = Quaternion.Euler(Camera_ResultRotation_X, Camera_ResultRotation_Y, 0f);
 
+        }
+
+        //휠 밀면 카메라 멀어짐
+        if(Input.GetAxis("Mouse ScrollWheel")> 0f)
+        {
+            if (CameraMaxDistance > -20f)
+            {
+                CameraMaxDistance -= 1f;
+            }
+        }
+
+        //휠 당기면 카메라 가까워짐
+        if(Input.GetAxis("Mouse ScrollWheel")< 0f)
+        {
+           
+            if (CameraMaxDistance < -3f)
+            {
+                CameraMaxDistance += 1f;
+            }
         }
         
     }
