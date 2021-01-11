@@ -23,12 +23,14 @@ public class CameraController : MonoBehaviour
 
     private float CameraDistance = 0f;
 
+    public int layerMask_Map = 0;
+
     // Start is called before the first frame update
     void Start()
     {
         CameraMaxDistance = -18f;
         CameraDistance = CameraMaxDistance;
-        
+        layerMask_Map = 1 << LayerMask.NameToLayer("Map");
     }
 
     // Update is called once per frame
@@ -36,10 +38,10 @@ public class CameraController : MonoBehaviour
     {
         this.transform.position = _CameraPos.transform.position;
         //작업용 카메라위치 RAY
-        Debug.DrawRay(this.transform.position, this.transform.forward * CameraMaxDistance, Color.red, 0.3f);
+        Debug.DrawRay(this.transform.position, this.transform.forward * CameraDistance, Color.red, 0.3f);
 
         //캐릭터 비추는 카메라의 위치를 조정
-        if (Physics.Raycast(this.transform.position, -this.transform.forward, out CameraPosRay, -CameraMaxDistance))
+        if (Physics.Raycast(this.transform.position, -this.transform.forward, out CameraPosRay, -CameraMaxDistance, layerMask_Map))
         {
             //Map오브젝트가 캐릭터를 가릴 경우
             if(CameraPosRay.collider.CompareTag("Map"))
@@ -94,23 +96,23 @@ public class CameraController : MonoBehaviour
 
         }
 
-        //휠 밀면 카메라 멀어짐
-        if(Input.GetAxis("Mouse ScrollWheel")> 0f)
+        //휠 밀면 카메라 가까워짐
+        if (Input.GetAxis("Mouse ScrollWheel")> 0f)
+        {
+            if (CameraMaxDistance < -3f)
+            {
+                CameraMaxDistance += 1f;
+            }
+        }
+
+        //휠 당기면 카메라 멀어짐
+        if (Input.GetAxis("Mouse ScrollWheel")< 0f)
         {
             if (CameraMaxDistance > -20f)
             {
                 CameraMaxDistance -= 1f;
             }
-        }
-
-        //휠 당기면 카메라 가까워짐
-        if(Input.GetAxis("Mouse ScrollWheel")< 0f)
-        {
-           
-            if (CameraMaxDistance < -3f)
-            {
-                CameraMaxDistance += 1f;
-            }
+            
         }
         
     }
