@@ -1,47 +1,59 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIMgr : MonoBehaviour
 {
-    public GameObject _first_Point = null;
-    public GameObject _Seceond_Point = null;
-    public GameObject _third_Point = null;
 
-    private float first_Point_Value = 0f;
-    private float Seceond_Point_Value = 0f;
-    private float third_Point_Value = 0f;
+    private PlayerController _Player = null;
+    public Slider _HealthBar = null;
+    public Slider _StaminaBar = null;
+
+    public float health_MaxGauge = 0f;
+    public float health_Gauge = 0f;
+    public float Stamina_MaxGauge = 0f;
+    public float Stamina_Gauge = 0f;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        _Player = FindObjectOfType<PlayerController>();
+
+        health_MaxGauge = InformationValue.Instance.player_MaxHealth;
+
+        _HealthBar.maxValue = health_MaxGauge;
+        _HealthBar.value = _HealthBar.maxValue;
+
+
+        Stamina_MaxGauge = InformationValue.Instance.player_MaxStamina;
+        _StaminaBar.maxValue = Stamina_MaxGauge;
+        _StaminaBar.value = _StaminaBar.maxValue;
     }
 
     // Update is called once per frame
     void Update()
     {
-        SkillOn(_first_Point,ref first_Point_Value);
-        SkillOn(_Seceond_Point,ref Seceond_Point_Value);
-        SkillOn(_third_Point,ref third_Point_Value);
-    }
-
-    void SkillOn(GameObject skillPoint, ref float value)
-    {
-        if (skillPoint.activeSelf == true)
+        if (_Player.runing == true)
         {
-            if (value >= 180f)
-            {
-                value = 0f;
-            }
-
-            skillPoint.transform.rotation = Quaternion.Euler(0f, 0f, value);
-
-            value += Time.deltaTime*50f;
+            Stamina_Gauge -= 10f * Time.deltaTime;
+            
         }
         else
         {
-            value = 0f;
+            if(Stamina_Gauge >= 100f)
+            {
+                Stamina_Gauge = Stamina_MaxGauge;
+            }
+            else
+            {
+                Stamina_Gauge += 10f * Time.deltaTime;
+            }
         }
+
+        _StaminaBar.value = Stamina_Gauge;
+        _HealthBar.value = health_Gauge;
     }
+
+    
 }
